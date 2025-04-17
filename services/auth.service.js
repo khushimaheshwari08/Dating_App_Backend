@@ -7,7 +7,11 @@ exports.signup = async (data) => {
     throw new Error("Email already in use");
   }
 
-  const hashedPassword = await bcrypt.hash(data.password, 10);
+  let hashedPassword = null;
+  if (data.password) {
+    hashedPassword = await bcrypt.hash(data.password, 10);
+  }
+
   const user = new User({ ...data, password: hashedPassword });
   await user.save();
   return user;

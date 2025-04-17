@@ -17,7 +17,6 @@ const userSchema = new Schema(
     interests: [String],
     sexualOrientation: String,
     profilePhotos: [String], // URLs or paths
-    password: { type: String, required: true },
   },
   { timestamps: true }
 );
