@@ -5,9 +5,6 @@ const URL_VALUE = process.env.MONGODEV;
 
 //Connecting to DB.....
 mongoose
-  .connect(URL_VALUE, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(URL_VALUE)
   .then(() => console.log("Mongo DB Connected"))
   .catch((err) => console.log(err.message));
