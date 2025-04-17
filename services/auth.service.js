@@ -1,18 +1,23 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/user.model");
 
-exports.signup = async (data) => {
-  const existing = await User.findOne({ email: data.email });
-  if (existing) {
-    throw new Error("Email already in use");
+const registerUser = async ({ name, email, password }) => {
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    throw new Error("User already exists");
   }
 
-  let hashedPassword = null;
-  if (data.password) {
-    hashedPassword = await bcrypt.hash(data.password, 10);
-  }
+  const hashedPassword = await bcrypt.hash(password, 10);
 
-  const user = new User({ ...data, password: hashedPassword });
-  await user.save();
+  const user = await User.create({
+    name,
+    email,
+    password: hashedPassword,
+  });
+
   return user;
+};
+
+module.exports = {
+  registerUser,
 };
