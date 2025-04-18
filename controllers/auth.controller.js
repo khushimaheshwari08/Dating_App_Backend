@@ -3,49 +3,57 @@ const generateToken = require("../utils/generateToken");
 
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { email, password } = req.body;
 
-    if (!name || !email || !password) {
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields are required" });
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required",
+      });
     }
 
-    const user = await authService.registerUser({ name, email, password });
+    const user = await authService.registerUser({ email, password });
 
     res.status(201).json({
       success: true,
-      message: "User registered successfully",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
+      message: "Registration successful - Complete your profile",
+      userId: user._id, // Send userId for profile completion
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email and password are required" });
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required",
+      });
     }
 
     const user = await authService.loginUser(email, password);
 
+    if (!user.profileCompleted) {
+      return res.status(200).json({
+        success: true,
+        profileCompleted: false,
+        message: "Please complete your profile",
+        userId: user._id,
+      });
+    }
+
     res.status(200).json({
       success: true,
-      message: "User logged in successfully",
+      profileCompleted: true,
+      token: generateToken(user._id),
       user: {
         id: user._id,
-        name: user.name,
         email: user.email,
-        token: generateToken(user._id),
+        firstName: user.firstName,
       },
     });
   } catch (error) {
@@ -53,7 +61,4 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = {
-  register,
-  login, // Add the new login function to exports
-};
+module.exports = { register, login };
