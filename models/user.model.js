@@ -9,9 +9,9 @@ const userSchema = new mongoose.Schema(
     birthday: Date,
     gender: String,
     interestedIn: [String],
-    lookingFor: String,
+    lookingFor: [String],
     interests: [String],
-    sexualOrientation: String,
+    sexualOrientation: [String],
   },
   { timestamps: true }
 );

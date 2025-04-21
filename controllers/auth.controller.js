@@ -14,10 +14,14 @@ const register = async (req, res) => {
 
     const user = await authService.registerUser({ email, password });
 
+    // Return both userId AND temporary token for profile completion
+    const profileCompletionToken = generateToken(user._id, "15m"); // Short-lived token
+
     res.status(201).json({
       success: true,
+      userId: user._id,
+      tempToken: profileCompletionToken, // For immediate profile completion
       message: "Registration successful - Complete your profile",
-      userId: user._id, // Send userId for profile completion
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

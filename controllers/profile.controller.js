@@ -1,17 +1,10 @@
-const mongoose = require("mongoose");
-
-// Method 1: Direct model access (bypass any import issues)
-const User = mongoose.model("User");
-
-// Method 2: Verify the import (comment out Method 1 if using this)
-// const User = require('../models/user.model');
+const User = require("../models/user.model");
 
 const completeProfile = async (req, res) => {
   try {
-    // Debug: Verify model methods
+    const { userId } = req.body;
 
-    const { userId, ...profileData } = req.body;
-
+    // 1. Verify userId exists in request
     if (!userId) {
       return res.status(400).json({
         success: false,
@@ -19,34 +12,49 @@ const completeProfile = async (req, res) => {
       });
     }
 
-    // Convert birthday if needed
-    if (profileData.birthday) {
-      profileData.birthday = new Date(profileData.birthday);
-    }
-
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { ...profileData, profileCompleted: true },
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedUser) {
+    // 2. Check if user exists
+    const userExists = await User.findById(userId);
+    if (!userExists) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: "User not found - please register first",
       });
     }
 
+    // 3. Validate required fields
+    const requiredFields = ["firstName", "birthday", "gender"];
+    const missingFields = requiredFields.filter((field) => !req.body[field]);
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+      });
+    }
+
+    // 4. Update profile
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        ...req.body,
+        birthday: new Date(req.body.birthday),
+        profileCompleted: true,
+      },
+      { new: true }
+    );
+
     res.status(200).json({
       success: true,
-      user: updatedUser,
+      user: {
+        id: updatedUser._id,
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+      },
     });
   } catch (error) {
-    console.error("[ERROR] Profile completion failed:", error);
     res.status(500).json({
       success: false,
       message: error.message,
-      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 };
