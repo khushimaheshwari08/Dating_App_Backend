@@ -5,13 +5,24 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     profileCompleted: { type: Boolean, default: false },
-    // Profile fields (will be added later)
     firstName: String,
     birthday: Date,
     gender: String,
     interestedIn: [String],
+    lookingFor: String,
+    interests: [String],
+    sexualOrientation: String,
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("User", userSchema);
+// Verify the model is properly compiled
+const User = mongoose.model("User", userSchema);
+
+// Test the model methods (temporary debug)
+console.log("[DEBUG] User model methods:", {
+  findByIdAndUpdate: typeof User.findByIdAndUpdate,
+  prototype: Object.getPrototypeOf(User),
+});
+
+module.exports = User;

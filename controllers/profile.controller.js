@@ -1,29 +1,33 @@
-const User = require("../models/user.model");
-const generateToken = require("../utils/generateToken"); // Add this import
+const mongoose = require("mongoose");
+
+// Method 1: Direct model access (bypass any import issues)
+const User = mongoose.model("User");
+
+// Method 2: Verify the import (comment out Method 1 if using this)
+// const User = require('../models/user.model');
 
 const completeProfile = async (req, res) => {
   try {
-    const { userId, firstName, birthday, gender, interestedIn, lookingFor } =
-      req.body;
+    // Debug: Verify model methods
 
-    if (!userId || !firstName || !birthday || !gender || !interestedIn) {
+    const { userId, ...profileData } = req.body;
+
+    if (!userId) {
       return res.status(400).json({
         success: false,
-        message: "All profile fields are required",
+        message: "User ID is required",
       });
+    }
+
+    // Convert birthday if needed
+    if (profileData.birthday) {
+      profileData.birthday = new Date(profileData.birthday);
     }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      {
-        firstName,
-        birthday: new Date(birthday),
-        gender,
-        interestedIn,
-        lookingFor,
-        profileCompleted: true,
-      },
-      { new: true }
+      { ...profileData, profileCompleted: true },
+      { new: true, runValidators: true }
     );
 
     if (!updatedUser) {
@@ -35,16 +39,15 @@ const completeProfile = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Profile completed successfully",
-      token: generateToken(updatedUser._id), // Now this will work
-      user: {
-        id: updatedUser._id,
-        email: updatedUser.email,
-        firstName: updatedUser.firstName,
-      },
+      user: updatedUser,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("[ERROR] Profile completion failed:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    });
   }
 };
 
