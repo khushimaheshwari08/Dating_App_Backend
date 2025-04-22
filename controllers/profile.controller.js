@@ -1,10 +1,9 @@
 const User = require("../models/user.model");
-
+const generateToken = require("../utils/generateToken");
 const completeProfile = async (req, res) => {
   try {
     const { userId } = req.body;
 
-    // 1. Verify userId exists in request
     if (!userId) {
       return res.status(400).json({
         success: false,
@@ -12,7 +11,6 @@ const completeProfile = async (req, res) => {
       });
     }
 
-    // 2. Check if user exists
     const userExists = await User.findById(userId);
     if (!userExists) {
       return res.status(404).json({
@@ -21,7 +19,6 @@ const completeProfile = async (req, res) => {
       });
     }
 
-    // 3. Validate required fields
     const requiredFields = ["firstName", "birthday", "gender"];
     const missingFields = requiredFields.filter((field) => !req.body[field]);
 
@@ -32,7 +29,6 @@ const completeProfile = async (req, res) => {
       });
     }
 
-    // 4. Update profile
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       {
@@ -43,13 +39,14 @@ const completeProfile = async (req, res) => {
       { new: true }
     );
 
+    // Convert to object and remove password
+    const userObject = updatedUser.toObject();
+    delete userObject.password;
+
     res.status(200).json({
       success: true,
-      user: {
-        id: updatedUser._id,
-        email: updatedUser.email,
-        firstName: updatedUser.firstName,
-      },
+      token: generateToken(updatedUser._id),
+      user: userObject, // Returns ALL user data
     });
   } catch (error) {
     res.status(500).json({
