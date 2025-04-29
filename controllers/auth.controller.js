@@ -19,7 +19,7 @@ const register = async (req, res) => {
       success: true,
       userId: user._id,
       user: {
-        name: user.name,
+        firstName: user.name,
         email: user.email,
       },
       tempToken: profileCompletionToken,
