@@ -3,24 +3,26 @@ const generateToken = require("../utils/generateToken");
 
 const register = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { name, email, password } = req.body; // Destructure name
 
-    if (!email || !password) {
+    if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Email and password are required",
+        message: "Name, email and password are required",
       });
     }
 
-    const user = await authService.registerUser({ email, password });
-
-    // Return both userId AND temporary token for profile completion
-    const profileCompletionToken = generateToken(user._id, "15m"); // Short-lived token
+    const user = await authService.registerUser({ name, email, password });
+    const profileCompletionToken = generateToken(user._id, "15m");
 
     res.status(201).json({
       success: true,
       userId: user._id,
-      tempToken: profileCompletionToken, // For immediate profile completion
+      user: {
+        name: user.name,
+        email: user.email,
+      },
+      tempToken: profileCompletionToken,
       message: "Registration successful - Complete your profile",
     });
   } catch (error) {

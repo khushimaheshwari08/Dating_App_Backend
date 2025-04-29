@@ -1,14 +1,19 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/user.model");
 
-const registerUser = async ({ email, password }) => {
+const registerUser = async ({ name, email, password }) => {
+  // Add name parameter
   const userExists = await User.findOne({ email });
   if (userExists) {
     throw new Error("Email already registered");
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  return await User.create({ email, password: hashedPassword });
+  return await User.create({
+    name, // Include name in creation
+    email,
+    password: hashedPassword,
+  });
 };
 
 const loginUser = async (email, password) => {
