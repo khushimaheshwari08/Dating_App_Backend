@@ -28,12 +28,12 @@ app.use(cors({ origin: "*" }));
 
 // Import routes
 const authRoutes = require("./routers/auth.routes");
-const imageUpload = require("./routers/imageUpload.route");
+// const imageUpload = require("./routers/imageUpload.route");
 const userRoutes = require("./routers/user.routes"); // Add this line
 
 // Mount routes
 app.use("/api/auth", authRoutes);
-app.use("/api/images", imageUpload);
+// app.use("/api/images", imageUpload);
 app.use("/api/users", userRoutes); // Add this line
 
 const port = process.env.PORT || 5000;
