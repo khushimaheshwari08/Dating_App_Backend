@@ -1,25 +1,21 @@
-const { createRouteHandler } = require("uploadthing/express");
+const { UploadThing } = require("uploadthing");
 require("dotenv").config();
 
-const uploadService = createRouteHandler({
-  router: {
-    imageUploader: {
-      input: () => true,
-      middleware: async () => ({}),
-      onUploadComplete: async ({ metadata, file }) => {
-        console.log("✅ Upload complete:", file);
-      },
-    },
-  },
-  config: {
-    uploadthingSecret: process.env.UPLOADTHING_SECRET,
-  },
+const ut = new UploadThing({
+  secret: process.env.UPLOADTHING_SECRET,
 });
 
 const generateUploadURL = async () => {
-  const { createUploadThing } = await uploadService;
-  const { url, key } = await createUploadThing("imageUploader", {});
-  return { url, key };
+  try {
+    const { url, key } = await ut.createUploadURL({
+      fileTypes: ["image"],
+      metadata: {}, // optional metadata
+    });
+    return { url, key };
+  } catch (error) {
+    console.error("Error generating upload URL:", error);
+    throw error;
+  }
 };
 
 module.exports = {
