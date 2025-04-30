@@ -1,4 +1,5 @@
 const User = require("../models/user.model");
+const Auth = require("../models/auth.model");
 const generateToken = require("../utils/generateToken");
 const completeProfile = async (req, res) => {
   try {
@@ -11,7 +12,7 @@ const completeProfile = async (req, res) => {
       });
     }
 
-    const userExists = await User.findById(userId);
+    const userExists = await Auth.findById(userId);
     if (!userExists) {
       return res.status(404).json({
         success: false,
@@ -19,7 +20,7 @@ const completeProfile = async (req, res) => {
       });
     }
 
-    const requiredFields = ["firstName", "birthday", "gender"];
+    const requiredFields = ["name", "birthday", "gender"];
     const missingFields = requiredFields.filter((field) => !req.body[field]);
 
     if (missingFields.length > 0) {
@@ -29,24 +30,24 @@ const completeProfile = async (req, res) => {
       });
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
+    // Corrected create call
+    const userData = {
       userId,
-      {
-        ...req.body,
-        birthday: new Date(req.body.birthday),
-        profileCompleted: true,
-      },
-      { new: true }
-    );
+      ...req.body,
+      birthday: new Date(req.body.birthday),
+      profileCompleted: true
+    };
 
-    // Convert to object and remove password
+    const updatedUser = await User.create(userData);
+
+    // Convert to object and remove password if it exists
     const userObject = updatedUser.toObject();
     delete userObject.password;
 
     res.status(200).json({
       success: true,
       token: generateToken(updatedUser._id),
-      user: userObject, // Returns ALL user data
+      user: userObject,
     });
   } catch (error) {
     res.status(500).json({

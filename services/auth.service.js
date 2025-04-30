@@ -1,15 +1,15 @@
 const bcrypt = require("bcryptjs");
-const User = require("../models/user.model");
+const Auth = require("../models/auth.model");
 
 const registerUser = async ({ name, email, password }) => {
   // Add name parameter
-  const userExists = await User.findOne({ email });
+  const userExists = await Auth.findOne({ email });
   if (userExists) {
     throw new Error("Email already registered");
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  return await User.create({
+  return await Auth.create({
     name, // Include name in creation
     email,
     password: hashedPassword,
@@ -17,7 +17,7 @@ const registerUser = async ({ name, email, password }) => {
 };
 
 const loginUser = async (email, password) => {
-  const user = await User.findOne({ email }).select("+password");
+  const user = await Auth.findOne({ email }).select("+password");
   if (!user) {
     throw new Error("Invalid credentials");
   }
