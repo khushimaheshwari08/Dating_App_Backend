@@ -1,6 +1,7 @@
 const User = require("../models/user.model");
 const Auth = require("../models/auth.model");
 const generateToken = require("../utils/generateToken");
+
 const completeProfile = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -30,7 +31,6 @@ const completeProfile = async (req, res) => {
       });
     }
 
-    // Corrected create call
     const userData = {
       userId,
       ...req.body,
@@ -38,7 +38,23 @@ const completeProfile = async (req, res) => {
       profileCompleted: true
     };
 
-    const updatedUser = await User.create(userData);
+    // Corrected findOneAndUpdate - added the update data (userData)
+    const updatedUser = await User.findOneAndUpdate(
+      { userId },
+      userData, // This was missing in your code
+      { 
+        new: true,
+        upsert: true,
+        setDefaultsOnInsert: true 
+      }
+    );
+
+    // Update Auth model's profileCompleted status
+     await Auth.findByIdAndUpdate(
+      userId, // Using just the ID since it's findByIdAndUpdate
+      { profileCompleted: true },
+      { new: true }
+    );
 
     // Convert to object and remove password if it exists
     const userObject = updatedUser.toObject();
@@ -50,6 +66,14 @@ const completeProfile = async (req, res) => {
       user: userObject,
     });
   } catch (error) {
+    // Handle duplicate key errors specifically
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: "User profile already exists for this ID"
+      });
+    }
+    
     res.status(500).json({
       success: false,
       message: error.message,
