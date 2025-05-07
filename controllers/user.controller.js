@@ -4,7 +4,6 @@ const Liked = require("../models/liked.model");
 
 const getOtherUsers = async (req, res) => {
   try {
-    console.log("req", req);
     // 1. Validate the logged-in user ID
     if (!req.user?.id) {
       return res.status(400).json({
@@ -15,7 +14,6 @@ const getOtherUsers = async (req, res) => {
 
     // 2. Convert to ObjectId using proper constructor
     const loggedInUserId = new mongoose.Types.ObjectId(req.user.id);
-    console.log("loggedInUserId", loggedInUserId);
     // 3. Get list of already liked users
     const likedData = await Liked.findOne({ userId: loggedInUserId });
     const likedUserIds = (likedData?.likedUserIds || []).map(
