@@ -30,11 +30,12 @@ const getOtherUsers = async (req, res) => {
       _id: { $nin: excludeIds },
       profileCompleted: true,
     }).select("-password -__v -createdAt -updatedAt");
+    const filteredUsers = users.filter(user => user.userId.toString() !== loggedInUserId.toString());
 
     res.status(200).json({
       success: true,
-      count: users.length,
-      users,
+      // count: filteredUsers.length,
+      filteredUsers,
     });
   } catch (error) {
     console.error("Error in getOtherUsers:", error);

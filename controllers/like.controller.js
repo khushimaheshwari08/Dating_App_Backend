@@ -4,10 +4,10 @@ const User = require("../models/user.model"); // ✅ ADD THIS
 const likeUser = async (req, res) => {
   const { likedUserId } = req.body;
   const userId = req.user.id;
+  console.log("liked user",likedUserId)
 
   try {
-    const likedUser = await User.findById(likedUserId);
-
+    const likedUser = await User.findOne({userId:likedUserId});
     if (!likedUser) {
       return res
         .status(404)
@@ -15,7 +15,6 @@ const likeUser = async (req, res) => {
     }
 
     let likedData = await Liked.findOne({ userId });
-
     if (!likedData) {
       likedData = new Liked({ userId, likedUserIds: [likedUser._id] });
     } else {
