@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 
-const userSchema = new mongoose.Schema({
-    userId : { type: String, required: true },
+const userSchema = new mongoose.Schema(
+  {
+    userId: { type: String, required: true },
     name: { type: String, required: true }, // Add this line
     profileCompleted: { type: Boolean, default: false },
     name: String,
@@ -11,6 +12,7 @@ const userSchema = new mongoose.Schema({
     lookingFor: [String],
     interests: [String],
     sexualOrientation: [String],
+    aboutMe: String,
   },
   { timestamps: true }
 );
