@@ -42,9 +42,9 @@ const login = async (req, res) => {
     }
 
     const user = await authService.loginUser(email, password);
-
-    // Convert Mongoose document to plain object and remove password
-    const userObject = user.toObject();
+    console.log("user", user);
+    // Convert Mongoose document to plain object
+    const userObject = user;
     delete userObject.password;
 
     if (!user.profileCompleted) {

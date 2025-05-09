@@ -58,4 +58,36 @@ const getLoggedInUser = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-module.exports = { getOtherUsers, getLoggedInUser };
+const updateLoggedInUser = async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Authentication required" });
+    }
+    const loggedInUserId = new mongoose.Types.ObjectId(req.user.id);
+    const updatedUser = await User.findOneAndUpdate(
+      { userId: loggedInUserId },
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).select("-password -__v");
+
+    if (!updatedUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+module.exports = { getOtherUsers, getLoggedInUser, updateLoggedInUser };

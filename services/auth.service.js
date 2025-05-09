@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const Auth = require("../models/auth.model");
+const User = require("../models/user.model");
 
 const registerUser = async ({ name, email, password }) => {
   // Add name parameter
@@ -23,11 +24,16 @@ const loginUser = async (email, password) => {
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
+  if (isMatch) {
+    const userProfile = await User.findOne({ email });
+    console.log("userProfile", userProfile);
+    return userProfile;
+  }
   if (!isMatch) {
     throw new Error("Invalid credentials");
   }
 
-  return user;
+  // return user;
 };
 
 module.exports = { registerUser, loginUser };
