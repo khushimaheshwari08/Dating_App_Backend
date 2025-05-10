@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema(
     interests: [String],
     sexualOrientation: [String],
     aboutMe: String,
+    image: String,
   },
   { timestamps: true }
 );
