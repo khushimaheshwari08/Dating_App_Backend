@@ -26,9 +26,9 @@ const loginUser = async (email, password) => {
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (isMatch) {
-    console.log("condition match")
+    // console.log("condition match")
     const userProfile = await User.findOne({userId:user._id });
-    console.log("userProfile", userProfile);
+    // console.log("userProfile", userProfile);
     return userProfile;
   }
   if (!isMatch) {

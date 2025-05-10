@@ -42,10 +42,10 @@ const login = async (req, res) => {
     }
 
     const user = await authService.loginUser(email, password);
-    console.log("user", user);
+    console.log("user", user) 
     // Convert Mongoose document to plain object
     const userObject = user;
-    delete userObject.password;
+    // delete userObject.password;
 
     if (!user.profileCompleted) {
       return res.status(200).json({
@@ -60,7 +60,7 @@ const login = async (req, res) => {
     res.status(200).json({
       success: true,
       profileCompleted: true,
-      token: generateToken(user._id),
+      token: generateToken(user.userId),
       user: userObject, // Returns ALL user data except password
     });
   } catch (error) {
