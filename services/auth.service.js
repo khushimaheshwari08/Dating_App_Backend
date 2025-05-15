@@ -19,19 +19,21 @@ const registerUser = async ({ name, email, password }) => {
 
 const loginUser = async (email, password) => {
   const user = await Auth.findOne({ email }).select("+password");
-  // console.log("user",user)
   if (!user) {
     throw new Error("Invalid credentials");
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
-  if (isMatch) {
-    // console.log("condition match")
-    const userProfile = await User.findOne({userId:user._id });
-    // console.log("userProfile", userProfile);
+
+  if (isMatch && user.profileCompleted == true) {
+    const userProfile = await User.findOne({ userId: user._id });
     return userProfile;
-  }
-  if (!isMatch) {
+  } else if (isMatch) {
+    const userProfile = await Auth.findOne(user._id);
+    return userProfile;
+  } else if (!isMatch) {
+    throw new Error("Invalid credentials");
+  } else {
     throw new Error("Invalid credentials");
   }
 
