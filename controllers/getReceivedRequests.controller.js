@@ -1,24 +1,30 @@
+const User = require("../models/user.model");
+const Auth = require("../models/auth.model");
 const FriendRequest = require("../models/friendRequest.model");
-const Auth = require("../models/auth.model"); // sender is from Auth collection
 
 const getReceivedRequests = async (req, res) => {
   try {
-    const receiverId = req.user.id; // Auth._id
+    const receiverId = req.user.id;
 
-    // Find all pending requests where the current user is the receiver
     const requests = await FriendRequest.find({
       receiver: receiverId,
       status: "pending",
     });
 
-    // Enrich each request with sender info
     const enrichedRequests = await Promise.all(
       requests.map(async (req) => {
-        const senderInfo = await Auth.findById(req.sender).select("name email");
+        const senderAuth = await Auth.findById(req.sender).select("name email");
+        const senderProfile = await User.findOne({ userId: req.sender }).select(
+          "gender birthday"
+        );
+
         return {
           _id: req._id,
           createdAt: req.createdAt,
-          sender: senderInfo || null,
+          name: senderAuth?.name || null,
+          email: senderAuth?.email || null,
+          gender: senderProfile?.gender || null,
+          birthday: senderProfile?.birthday || null,
         };
       })
     );
