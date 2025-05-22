@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const User = require("../models/user.model");
 const Liked = require("../models/liked.model");
+const FriendRequest = require("../models/friendRequest.model");
 
 // Get other users
 
@@ -60,11 +61,6 @@ const Liked = require("../models/liked.model");
 //     });
 //   }
 // };
-
-const mongoose = require("mongoose");
-const User = require("../models/user.model");
-const Liked = require("../models/liked.model");
-const FriendRequest = require("../models/friendRequest.model");
 
 const getOtherUsers = async (req, res) => {
   try {
