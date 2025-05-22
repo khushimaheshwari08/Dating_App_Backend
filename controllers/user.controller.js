@@ -93,13 +93,14 @@ const getOtherUsers = async (req, res) => {
       sender: loggedInUserId,
       status: "pending",
     });
-    const requestedUserIds = sentRequests.map(
-      (req) => new mongoose.Types.ObjectId(req.receiver)
-    );
-
+    // ⚠️ Ensure receiver is cast to ObjectId
+    const receiverAuthIds = sentRequests.map((req) => req.receiver);
+    const requestedUsers = await User.find({
+      userId: { $in: receiverAuthIds },
+    });
+    const requestedUserIds = requestedUsers.map((user) => user._id);
     // 🔹 Final exclusion list
     const excludeIds = [currentUser._id, ...likedUserIds, ...requestedUserIds];
-
     // 🔹 Build query
     const query = {
       _id: { $nin: excludeIds },
