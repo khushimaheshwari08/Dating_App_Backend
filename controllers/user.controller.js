@@ -3,11 +3,12 @@ const User = require("../models/user.model");
 const Liked = require("../models/liked.model");
 
 // Get other users
+
 // const getOtherUsers = async (req, res) => {
 //   try {
 //     const loggedInUserId = new mongoose.Types.ObjectId(req.user.id);
 
-//     // 🔹 Fetch full profile from User model using userId
+//     // 🔹 Fetch current user's profile
 //     const currentUser = await User.findOne({ userId: loggedInUserId });
 //     if (!currentUser) {
 //       return res.status(404).json({
@@ -15,12 +16,14 @@ const Liked = require("../models/liked.model");
 //         message: "User not found",
 //       });
 //     }
-//     // 🔹 Map interest to gender
-//     const genderMap = { Woman: "Female", Man: "Male" };
+
 //     const interestedIn = currentUser.interestedIn || [];
-//     const genderFilter = interestedIn.length
-//       ? interestedIn.map((i) => genderMap[i] || i)
-//       : ["Male", "Female"];
+
+//     // 🔹 Check if user selected "Everyone"
+//     const interestedInEveryone = interestedIn.includes("Everyone");
+
+//     const genderMap = { Woman: "Female", Man: "Male" };
+//     const genderFilter = interestedIn.map((i) => genderMap[i]).filter(Boolean); // remove undefined
 
 //     // 🔹 Get liked users
 //     const likedData = await Liked.findOne({ userId: loggedInUserId });
@@ -30,12 +33,20 @@ const Liked = require("../models/liked.model");
 
 //     const excludeIds = [currentUser._id, ...likedUserIds];
 
-//     // 🔹 Final user query
-//     const users = await User.find({
+//     // 🔹 Build user query
+//     const query = {
 //       _id: { $nin: excludeIds },
 //       profileCompleted: true,
-//       gender: { $in: genderFilter },
-//     }).select("-password -__v -createdAt -updatedAt");
+//     };
+
+//     if (!interestedInEveryone) {
+//       query.gender = { $in: genderFilter };
+//     }
+
+//     // 🔹 Fetch users
+//     const users = await User.find(query).select(
+//       "-password -__v -createdAt -updatedAt"
+//     );
 
 //     res.status(200).json({
 //       success: true,
@@ -49,11 +60,17 @@ const Liked = require("../models/liked.model");
 //     });
 //   }
 // };
+
+const mongoose = require("mongoose");
+const User = require("../models/user.model");
+const Liked = require("../models/liked.model");
+const FriendRequest = require("../models/friendRequest.model");
+
 const getOtherUsers = async (req, res) => {
   try {
     const loggedInUserId = new mongoose.Types.ObjectId(req.user.id);
 
-    // 🔹 Fetch current user's profile
+    // 🔹 Get logged-in user's profile
     const currentUser = await User.findOne({ userId: loggedInUserId });
     if (!currentUser) {
       return res.status(404).json({
@@ -62,23 +79,32 @@ const getOtherUsers = async (req, res) => {
       });
     }
 
+    // 🔹 Gender filter setup
     const interestedIn = currentUser.interestedIn || [];
-
-    // 🔹 Check if user selected "Everyone"
     const interestedInEveryone = interestedIn.includes("Everyone");
 
     const genderMap = { Woman: "Female", Man: "Male" };
-    const genderFilter = interestedIn.map((i) => genderMap[i]).filter(Boolean); // remove undefined
+    const genderFilter = interestedIn.map((i) => genderMap[i]).filter(Boolean);
 
-    // 🔹 Get liked users
+    // 🔹 Get liked user IDs
     const likedData = await Liked.findOne({ userId: loggedInUserId });
     const likedUserIds = (likedData?.likedUserIds || []).map(
       (id) => new mongoose.Types.ObjectId(id)
     );
 
-    const excludeIds = [currentUser._id, ...likedUserIds];
+    // 🔹 Get pending friend request receivers
+    const sentRequests = await FriendRequest.find({
+      sender: loggedInUserId,
+      status: "pending",
+    });
+    const requestedUserIds = sentRequests.map(
+      (req) => new mongoose.Types.ObjectId(req.receiver)
+    );
 
-    // 🔹 Build user query
+    // 🔹 Final exclusion list
+    const excludeIds = [currentUser._id, ...likedUserIds, ...requestedUserIds];
+
+    // 🔹 Build query
     const query = {
       _id: { $nin: excludeIds },
       profileCompleted: true,
@@ -88,7 +114,7 @@ const getOtherUsers = async (req, res) => {
       query.gender = { $in: genderFilter };
     }
 
-    // 🔹 Fetch users
+    // 🔹 Fetch filtered users
     const users = await User.find(query).select(
       "-password -__v -createdAt -updatedAt"
     );
@@ -105,6 +131,7 @@ const getOtherUsers = async (req, res) => {
     });
   }
 };
+
 // Get logged-in user
 const getLoggedInUser = async (req, res) => {
   try {
