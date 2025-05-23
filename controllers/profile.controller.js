@@ -80,7 +80,6 @@
 //     });
 //   }
 // };
-const path = require("path");
 const User = require("../models/user.model");
 const Auth = require("../models/auth.model");
 const generateToken = require("../utils/generateToken");
@@ -112,21 +111,49 @@ const completeProfile = async (req, res) => {
       });
     }
 
-    const imageUrl = req.file?.path || ""; // Cloudinary URL
+    // Extract image URLs from req.files (Cloudinary stores path as URL)
+    let imageUrls = [];
+    if (req.files && req.files.length > 0) {
+      imageUrls = req.files.map((file) => file.path);
+    }
 
-    const userData = {
+    // Ensure string arrays are properly formatted
+    const formattedUserData = {
       userId,
-      ...req.body,
+      name: req.body.name,
       birthday: new Date(req.body.birthday),
+      gender: req.body.gender,
+      showGender:
+        req.body.showGender === "true" || req.body.showGender === true,
+      interestedIn: Array.isArray(req.body.interestedIn)
+        ? req.body.interestedIn
+        : req.body.interestedIn?.split(","),
+      lookingFor: Array.isArray(req.body.lookingFor)
+        ? req.body.lookingFor
+        : req.body.lookingFor?.split(","),
+      interests: Array.isArray(req.body.interests)
+        ? req.body.interests
+        : req.body.interests?.split(","),
+      sexualOrientation: Array.isArray(req.body.sexualOrientation)
+        ? req.body.sexualOrientation
+        : req.body.sexualOrientation?.split(","),
+      aboutMe: req.body.aboutMe || "",
       profileCompleted: true,
-      image: imageUrl,
     };
 
-    const updatedUser = await User.findOneAndUpdate({ userId }, userData, {
-      new: true,
-      upsert: true,
-      setDefaultsOnInsert: true,
-    });
+    if (imageUrls.length > 0) {
+      formattedUserData.image = imageUrls;
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      { userId },
+      formattedUserData,
+      {
+        new: true,
+        upsert: true,
+        setDefaultsOnInsert: true,
+      }
+    );
 
     await Auth.findByIdAndUpdate(
       userId,

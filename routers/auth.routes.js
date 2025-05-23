@@ -32,7 +32,7 @@ router.post("/login", authController.login);
 // Profile completion with image upload
 router.post(
   "/complete-profile",
-  parser.single("image"), // ✅ Accept image field
+  parser.array("image", 5), // ✅ Accept image field
   profileController.completeProfile // ✅ Controller must be exported properly
 );
 
