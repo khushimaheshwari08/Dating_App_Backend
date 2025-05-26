@@ -42,25 +42,30 @@ const login = async (req, res) => {
     }
 
     const user = await authService.loginUser(email, password);
-    // Convert Mongoose document to plain object
-    const userObject = user;
+
+    // Convert Mongoose document to plain object if needed
+    const userObject = user.toObject ? user.toObject() : { ...user };
+
+    // Optionally remove sensitive fields
     // delete userObject.password;
+
+    // Ensure userId is included inside user object
+    userObject.userId = user._id;
 
     if (!user.profileCompleted) {
       return res.status(200).json({
         success: true,
         profileCompleted: false,
         message: "Please complete your profile",
-        userId: user._id,
-        user: userObject, // Still return all available data
+        user: userObject,
       });
     }
 
     res.status(200).json({
       success: true,
       profileCompleted: true,
-      token: generateToken(user.userId),
-      user: userObject, // Returns ALL user data except password
+      token: generateToken(user._id),
+      user: userObject,
     });
   } catch (error) {
     res.status(401).json({ success: false, message: error.message });

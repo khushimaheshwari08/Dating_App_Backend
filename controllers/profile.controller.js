@@ -123,8 +123,6 @@ const completeProfile = async (req, res) => {
       name: req.body.name,
       birthday: new Date(req.body.birthday),
       gender: req.body.gender,
-      showGender:
-        req.body.showGender === "true" || req.body.showGender === true,
       interestedIn: Array.isArray(req.body.interestedIn)
         ? req.body.interestedIn
         : req.body.interestedIn?.split(","),
