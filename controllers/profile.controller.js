@@ -166,7 +166,7 @@ const completeProfile = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      token: generateToken(updatedUser._id),
+      token: generateToken(updatedUser.userId),
       user: userObject,
     });
   } catch (error) {
