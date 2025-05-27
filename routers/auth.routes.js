@@ -4,6 +4,7 @@
 // const profileController = require("../controllers/profile.controller");
 // const userController = require("../controllers/user.controller");
 // const authMiddleware = require("../middlewares/auth.middleware");
+const imageUploadController = require("../controllers/imageUpload.controller");
 
 // // Auth routes
 // router.post("/register", authController.register);
@@ -38,5 +39,11 @@ router.post(
 
 // Get users (excluding liked/requested/etc)
 router.get("/others", authMiddleware, userController.getOtherUsers);
+
+// Add this new route
+router.post("/upload-images", 
+  parser.array("images", 5), 
+  imageUploadController.uploadImage
+);
 
 module.exports = router;
