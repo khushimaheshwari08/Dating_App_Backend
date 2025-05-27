@@ -50,8 +50,11 @@ const login = async (req, res) => {
     // delete userObject.password;
 
     // Ensure userId is included inside user object
-    userObject.userId = user._id;
-
+    userObject.userId = user.userId;
+console.log(userObject);
+    // Check if profile is completed before returning success response
+    // If not, return a temporary token for profile completion
+    // If yes, return a regular token for authentication and profile completion success
     if (!user.profileCompleted) {
       return res.status(200).json({
         success: true,
@@ -64,7 +67,7 @@ const login = async (req, res) => {
     res.status(200).json({
       success: true,
       profileCompleted: true,
-      token: generateToken(user._id),
+      token: generateToken(user.userId),
       user: userObject,
     });
   } catch (error) {

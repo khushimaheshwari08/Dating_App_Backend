@@ -65,7 +65,7 @@ const FriendRequest = require("../models/friendRequest.model");
 const getOtherUsers = async (req, res) => {
   try {
     const loggedInUserId = new mongoose.Types.ObjectId(req.user.id);
-
+    console.log(loggedInUserId);
     // 🔹 Get logged-in user's profile
     const currentUser = await User.findOne({ userId: loggedInUserId });
     if (!currentUser) {

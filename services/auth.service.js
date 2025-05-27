@@ -27,9 +27,11 @@ const loginUser = async (email, password) => {
 
   if (isMatch && user.profileCompleted == true) {
     const userProfile = await User.findOne({ userId: user._id });
+    console.log("completed profile",userProfile);
     return userProfile;
   } else if (isMatch) {
     const userProfile = await Auth.findOne(user._id);
+    console.log("isMatch",userProfile);
     return userProfile;
   } else if (!isMatch) {
     throw new Error("Invalid credentials");

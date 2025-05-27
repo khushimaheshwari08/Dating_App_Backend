@@ -87,7 +87,7 @@ const generateToken = require("../utils/generateToken");
 const completeProfile = async (req, res) => {
   try {
     const { userId } = req.body;
-
+    
     if (!userId) {
       return res
         .status(400)
