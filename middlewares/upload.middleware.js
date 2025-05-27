@@ -10,6 +10,12 @@ const storage = new CloudinaryStorage({
   },
 });
 
-const parser = multer({ storage });
+const parser = multer({ 
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    // Add file type validation if needed
+    cb(null, true);
+  }
+});
 
 module.exports = parser;
