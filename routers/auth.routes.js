@@ -33,7 +33,7 @@ router.post("/login", authController.login);
 // Profile completion with image upload
 router.post(
   "/complete-profile",
-  parser.array("image", 5), // ✅ Accept image field
+  //   parser.array("image", 5), // ✅ Accept image field
   profileController.completeProfile // ✅ Controller must be exported properly
 );
 
@@ -41,8 +41,9 @@ router.post(
 router.get("/others", authMiddleware, userController.getOtherUsers);
 
 // Add this new route
-router.post("/upload-images", 
-  parser.array("images", 5), 
+router.post(
+  "/upload-images",
+  parser.array("images", 5),
   imageUploadController.uploadImage
 );
 
