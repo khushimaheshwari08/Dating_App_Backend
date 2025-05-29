@@ -29,6 +29,7 @@ const parser = require("../middlewares/upload.middleware"); // ✅ Multer Cloudi
 // Auth routes
 router.post("/register", authController.register);
 router.post("/login", authController.login);
+router.post("/logout", authController.logout);
 
 // Profile completion with image upload
 router.post(

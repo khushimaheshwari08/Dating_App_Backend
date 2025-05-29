@@ -51,7 +51,7 @@ const login = async (req, res) => {
 
     // Ensure userId is included inside user object
     userObject.userId = user.userId;
-console.log(userObject);
+    console.log(userObject);
     // Check if profile is completed before returning success response
     // If not, return a temporary token for profile completion
     // If yes, return a regular token for authentication and profile completion success
@@ -75,4 +75,22 @@ console.log(userObject);
   }
 };
 
-module.exports = { register, login };
+const logout = async (req, res) => {
+  try {
+    // JWT is stateless, so we can't invalidate it server-side without a blacklist
+    // Just inform the client to remove the token
+    res.status(200).json({
+      success: true,
+      message:
+        "Logout successful. Please remove the token from client storage.",
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred during logout.",
+    });
+  }
+};
+
+module.exports = { register, login, logout };
