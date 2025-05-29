@@ -87,7 +87,7 @@ const generateToken = require("../utils/generateToken");
 const completeProfile = async (req, res) => {
   try {
     const { userId } = req.body;
-    
+
     if (!userId) {
       return res
         .status(400)
@@ -112,10 +112,10 @@ const completeProfile = async (req, res) => {
     }
 
     // Extract image URLs from req.files (Cloudinary stores path as URL)
-    let imageUrls = [];
-    if (req.files && req.files.length > 0) {
-      imageUrls = req.files.map((file) => file.path);
-    }
+    // let imageUrls = [];
+    // if (req.files && req.files.length > 0) {
+    //   imageUrls = req.files.map((file) => file.path);
+    // }
 
     // Ensure string arrays are properly formatted
     const formattedUserData = {
@@ -137,11 +137,14 @@ const completeProfile = async (req, res) => {
         : req.body.sexualOrientation?.split(","),
       aboutMe: req.body.aboutMe || "",
       profileCompleted: true,
+      image: Array.isArray(req.body.image)
+        ? req.body.image
+        : req.body.image?.split(","),
     };
 
-    if (imageUrls.length > 0) {
-      formattedUserData.image = imageUrls;
-    }
+    // if (imageUrls.length > 0) {
+    //   formattedUserData.image = imageUrls;
+    // }
 
     const updatedUser = await User.findOneAndUpdate(
       { userId },
