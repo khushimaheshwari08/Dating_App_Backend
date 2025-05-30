@@ -77,12 +77,9 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-    // JWT is stateless, so we can't invalidate it server-side without a blacklist
-    // Just inform the client to remove the token
     res.status(200).json({
       success: true,
-      message:
-        "Logout successful. Please remove the token from client storage.",
+      message: "Logout successful.",
     });
   } catch (error) {
     console.error("Logout error:", error);
