@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema(
     userId: { type: String, required: true },
     name: { type: String, required: true }, // Add this line
     profileCompleted: { type: Boolean, default: false },
-    name: String,
+    // name: String,
     birthday: Date,
     gender: String,
     interestedIn: [String],
