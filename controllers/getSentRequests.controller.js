@@ -1,11 +1,11 @@
 const FriendRequest = require("../models/friendRequest.model");
-const User = require("../models/user.model"); // import your User model
+const User = require("../models/user.model");
 
 const getSentRequests = async (req, res) => {
   try {
     const senderId = req.user.id;
 
-    // Get pending requests sent by this user
+    // Get pending friend requests sent by this user
     const requests = await FriendRequest.find({
       sender: senderId,
       status: "pending",
@@ -13,17 +13,29 @@ const getSentRequests = async (req, res) => {
 
     // Manually fetch receiver user info for each request
     const enrichedRequests = await Promise.all(
-      requests.map(async (req) => {
-        const receiverInfo = await User.findOne({userId:req.receiver}).select("userId name gender birthday");
+      requests.map(async (request) => {
+        const receiverInfo = await User.findOne({
+          userId: request.receiver,
+        }).select("userId name gender birthday image");
+
+        if (!receiverInfo) {
+          console.warn("Receiver not found for ID:", request.receiver);
+          return null; // Skip if receiver user not found
+        }
+
         return {
-          // ...req.toObject(),
+          requestId: request._id, // include request ID if needed
           ...receiverInfo.toObject(),
         };
       })
     );
 
-    res.status(200).json({ success: true, requests: enrichedRequests });
+    // Filter out null results (where receiver not found)
+    const filteredRequests = enrichedRequests.filter(Boolean);
+
+    res.status(200).json({ success: true, requests: filteredRequests });
   } catch (error) {
+    console.error("Error in getSentRequests:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
