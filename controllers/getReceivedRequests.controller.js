@@ -15,7 +15,7 @@ const getReceivedRequests = async (req, res) => {
       requests.map(async (req) => {
         const senderAuth = await Auth.findById(req.sender).select("name email");
         const senderProfile = await User.findOne({ userId: req.sender }).select(
-          "gender birthday"
+          "name email gender birthday image"
         );
 
         return {
@@ -25,6 +25,7 @@ const getReceivedRequests = async (req, res) => {
           email: senderAuth?.email || null,
           gender: senderProfile?.gender || null,
           birthday: senderProfile?.birthday || null,
+          image: senderProfile?.image || null,
         };
       })
     );
