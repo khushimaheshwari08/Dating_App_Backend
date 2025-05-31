@@ -5,68 +5,11 @@ const FriendRequest = require("../models/friendRequest.model");
 
 // Get other users
 
-// const getOtherUsers = async (req, res) => {
-//   try {
-//     const loggedInUserId = new mongoose.Types.ObjectId(req.user.id);
-
-//     // 🔹 Fetch current user's profile
-//     const currentUser = await User.findOne({ userId: loggedInUserId });
-//     if (!currentUser) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "User not found",
-//       });
-//     }
-
-//     const interestedIn = currentUser.interestedIn || [];
-
-//     // 🔹 Check if user selected "Everyone"
-//     const interestedInEveryone = interestedIn.includes("Everyone");
-
-//     const genderMap = { Woman: "Female", Man: "Male" };
-//     const genderFilter = interestedIn.map((i) => genderMap[i]).filter(Boolean); // remove undefined
-
-//     // 🔹 Get liked users
-//     const likedData = await Liked.findOne({ userId: loggedInUserId });
-//     const likedUserIds = (likedData?.likedUserIds || []).map(
-//       (id) => new mongoose.Types.ObjectId(id)
-//     );
-
-//     const excludeIds = [currentUser._id, ...likedUserIds];
-
-//     // 🔹 Build user query
-//     const query = {
-//       _id: { $nin: excludeIds },
-//       profileCompleted: true,
-//     };
-
-//     if (!interestedInEveryone) {
-//       query.gender = { $in: genderFilter };
-//     }
-
-//     // 🔹 Fetch users
-//     const users = await User.find(query).select(
-//       "-password -__v -createdAt -updatedAt"
-//     );
-
-//     res.status(200).json({
-//       success: true,
-//       filteredUsers: users,
-//     });
-//   } catch (error) {
-//     console.error("Error in getOtherUsers:", error);
-//     res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// };
-
 const getOtherUsers = async (req, res) => {
   try {
-    const loggedInUserId = new mongoose.Types.ObjectId(req.user.id);
-    console.log(loggedInUserId);
-    // 🔹 Get logged-in user's profile
+    const loggedInUserId = req.user.id;
+
+    // Get current user's profile
     const currentUser = await User.findOne({ userId: loggedInUserId });
     if (!currentUser) {
       return res.status(404).json({
@@ -75,33 +18,66 @@ const getOtherUsers = async (req, res) => {
       });
     }
 
-    // 🔹 Gender filter setup
+    // Setup gender preference
     const interestedIn = currentUser.interestedIn || [];
     const interestedInEveryone = interestedIn.includes("Everyone");
 
     const genderMap = { Woman: "Female", Man: "Male" };
     const genderFilter = interestedIn.map((i) => genderMap[i]).filter(Boolean);
 
-    // 🔹 Get liked user IDs
+    // Get liked user IDs
     const likedData = await Liked.findOne({ userId: loggedInUserId });
     const likedUserIds = (likedData?.likedUserIds || []).map(
       (id) => new mongoose.Types.ObjectId(id)
     );
 
-    // 🔹 Get pending friend request receivers
-    const sentRequests = await FriendRequest.find({
-      sender: loggedInUserId,
-      status: "pending",
+    // Get all friend requests (sent and received)
+    const sentRequests = await FriendRequest.find({ sender: loggedInUserId });
+    const receivedRequests = await FriendRequest.find({
+      receiver: loggedInUserId,
     });
-    // ⚠️ Ensure receiver is cast to ObjectId
-    const receiverAuthIds = sentRequests.map((req) => req.receiver);
+
+    // Build sets of accepted users
+    const acceptedSent = new Set(
+      sentRequests
+        .filter((r) => r.status === "accepted")
+        .map((r) => r.receiver.toString())
+    );
+    const acceptedReceived = new Set(
+      receivedRequests
+        .filter((r) => r.status === "accepted")
+        .map((r) => r.sender.toString())
+    );
+
+    // Find mutual matches (accepted both ways)
+    const mutualMatches = [...acceptedSent].filter((id) =>
+      acceptedReceived.has(id)
+    );
+
+    // Get users you sent any requests to (to exclude)
+    const requestedUserIds = sentRequests.map((r) => r.receiver);
+
+    // Convert mutual match userIds to _id via User lookup
+    const mutualMatchedUsers = await User.find({
+      userId: { $in: mutualMatches },
+    });
+    const mutualMatchedUserIds = mutualMatchedUsers.map((u) => u._id);
+
+    // Final exclusion list
+    const excludeIds = [
+      currentUser._id,
+      ...likedUserIds,
+      ...mutualMatchedUserIds,
+    ];
+
+    // Also exclude users who received your request
     const requestedUsers = await User.find({
-      userId: { $in: receiverAuthIds },
+      userId: { $in: requestedUserIds },
     });
-    const requestedUserIds = requestedUsers.map((user) => user._id);
-    // 🔹 Final exclusion list
-    const excludeIds = [currentUser._id, ...likedUserIds, ...requestedUserIds];
-    // 🔹 Build query
+    const requestedUserObjectIds = requestedUsers.map((u) => u._id);
+    excludeIds.push(...requestedUserObjectIds);
+
+    // Build user query
     const query = {
       _id: { $nin: excludeIds },
       profileCompleted: true,
@@ -111,7 +87,7 @@ const getOtherUsers = async (req, res) => {
       query.gender = { $in: genderFilter };
     }
 
-    // 🔹 Fetch filtered users
+    // Fetch filtered users
     const users = await User.find(query).select(
       "-password -__v -createdAt -updatedAt"
     );
